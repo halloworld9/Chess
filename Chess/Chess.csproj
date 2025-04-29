@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="images\Bbishop.png" />
+    <None Remove="images\BKing.png" />
+    <None Remove="images\BKnight.png" />
+    <None Remove="images\BPawn.png" />
+    <None Remove="images\BQueen.png" />
+    <None Remove="images\BRook.png" />
+    <None Remove="images\WBishop.png" />
+    <None Remove="images\WKing.png" />
+    <None Remove="images\WKnight.png" />
+    <None Remove="images\WPawn.png" />
+    <None Remove="images\WQueen.png" />
+    <None Remove="images\WRook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\Bbishop.png" />
+    <Resource Include="images\BKing.png" />
+    <Resource Include="images\BKnight.png" />
+    <Resource Include="images\BPawn.png" />
+    <Resource Include="images\BQueen.png" />
+    <Resource Include="images\BRook.png" />
+    <Resource Include="images\WBishop.png" />
+    <Resource Include="images\WKing.png" />
+    <Resource Include="images\WKnight.png" />
+    <Resource Include="images\WPawn.png" />
+    <Resource Include="images\WQueen.png" />
+    <Resource Include="images\WRook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="engine\" />
+  </ItemGroup>
+
+</Project>
