@@ -4,8 +4,8 @@ namespace ChessLib;
 
 public class Searcher
 {
-    public static readonly int MateUpper = new Piece('K').Value + 10 * new Piece('Q').Value;
-    public static readonly int  MateLower = -MateUpper;
+    public static readonly int MateUpper = 59000;
+    public static readonly int  MateLower = -59000;
     private static readonly int MaxTableSize = 10000000;
     private static readonly int EvalRoughness = 13;
     private int _nodes = 0;
@@ -101,4 +101,7 @@ public class Searcher
 
         return tp[pos].Move;
     }
+
+
+
 }

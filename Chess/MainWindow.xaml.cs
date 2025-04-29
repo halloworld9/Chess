@@ -57,11 +57,11 @@ namespace Chess
                 cells[i] = clickedCell;
                 Field.Children.Add(clickedCell);
             }
-            pos = new Position(new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBKQBNR"));
+            pos = new Position(new Board("4k3/pppppppp/8/8/8/8/PPPPPPPP/4K3"));
             board = pos.Board;
             DrawPieces(board);
             this.searcher = new Searcher();
-            moves = pos.Moves();
+            moves = pos.GetLegalMoves();
         }
         private static Action EmptyDelegate = delegate () { };
         private MouseButtonEventHandler CellClick(int i)
@@ -86,15 +86,6 @@ namespace Chess
                             var newPos = pos.Move(m);
                             var b = newPos.Board;
                             var f = false;
-                            foreach (var mov in newPos.Moves())
-                            {
-                                if (b[mov.ToIndex] == 'k')
-                                {
-                                    f= true;
-                                    break;
-                                }
-
-                            }
                             if (f)
                                 continue;
                             var el = new Ellipse();
@@ -113,15 +104,14 @@ namespace Chess
                     {
                         if (move.FromIndex == lastClick && move.ToIndex == i)
                         {
-
+                            MessageBox.Show(pos.Value(move).ToString());
                             pos = pos.Move(move);
-                            DrawPieces(pos.Flip().Board);
-                            this.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
                             var m = searcher.Search(pos, 10000);
-                            pos = pos.Move(m);              
-                            board = pos.Board;
-                            DrawPieces(board);
-                            moves = pos.Moves();
+                            var pos1 = pos.Move(m);
+                            var m1 = searcher.Search(pos1, 100);
+                            MessageBox.Show(pos1.Value(m1).ToString());
+                                
+                            MakeMove(move);
                             lastClick = -1;
                         }
                     }
@@ -131,6 +121,19 @@ namespace Chess
                     //clickedCell.Margin = new Thickness(lastClick % 8 * cellWidth, lastClick / 8 * cellHeight, 0, 0);
                 }
             };
+        }
+
+        private void MakeMove(Move move)
+        {
+            pos = pos.Move(move);
+            moves = pos.GetLegalMoves();
+            whiteTurn = !whiteTurn;
+            if (!whiteTurn) 
+                DrawPieces(pos.Board);
+            else
+                DrawPieces(pos.Flip().Board);
+            if (moves.Count == 0)
+                MessageBox.Show("КОНЕЦ");
         }
 
         private MouseButtonEventHandler MarkCell(int i)
@@ -195,6 +198,7 @@ namespace Chess
                 Canvas.SetZIndex(im, 2);
                 Field.Children.Add(im);
             }
+            this.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
