@@ -13,7 +13,7 @@ using ChessLib;
 
 namespace Chess
 {
-    
+
     public partial class MainWindow : Window
     {
         private double cellWidth;
@@ -57,7 +57,7 @@ namespace Chess
                 cells[i] = clickedCell;
                 Field.Children.Add(clickedCell);
             }
-            pos = new Position(new Board("4k3/pppppppp/8/8/8/8/PPPPPPPP/4K3"));
+            pos = new Position(new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"));
             board = pos.Board;
             DrawPieces(board);
             this.searcher = new Searcher();
@@ -69,7 +69,7 @@ namespace Chess
             return (sender, e) =>
             {
                 foreach (var circle in possibleMoves)
-                {   
+                {
                     Field.Children.Remove(circle);
                 }
                 possibleMoves.Clear();
@@ -77,9 +77,11 @@ namespace Chess
                 if (lastClick == i)
                 {
                     lastClick = -1;
-                } else if (char.IsLetter(board[i]) && char.IsUpper(board[i])) {
+                }
+                else if (char.IsLetter(board[i]) && char.IsUpper(board[i]))
+                {
                     lastClick = i;
-                foreach (Move m in moves)
+                    foreach (Move m in moves)
                     {
                         if (m.FromIndex == lastClick)
                         {
@@ -98,20 +100,20 @@ namespace Chess
                             Field.Children.Add(el);
                         }
                     }
-                } else
-                { 
+                }
+                else
+                {
                     foreach (var move in moves)
                     {
                         if (move.FromIndex == lastClick && move.ToIndex == i)
                         {
-                            MessageBox.Show(pos.Value(move).ToString());
-                            pos = pos.Move(move);
-                            var m = searcher.Search(pos, 10000);
-                            var pos1 = pos.Move(m);
-                            var m1 = searcher.Search(pos1, 100);
-                            MessageBox.Show(pos1.Value(m1).ToString());
-                                
+                            //MessageBox.Show(pos.Value(move).ToString());
                             MakeMove(move);
+                            var m = searcher.Search(pos, 10000);
+                            MakeMove(m);
+                            //var m1 = searcher.Search(pos1, 100);
+                            //MessageBox.Show(pos1.Value(m1).ToString());
+
                             lastClick = -1;
                         }
                     }
@@ -126,14 +128,21 @@ namespace Chess
         private void MakeMove(Move move)
         {
             pos = pos.Move(move);
-            moves = pos.GetLegalMoves();
+            moves = pos.Moves();
             whiteTurn = !whiteTurn;
-            if (!whiteTurn) 
-                DrawPieces(pos.Board);
+            if (whiteTurn)
+            {
+                board = pos.Board;
+                DrawPieces(board);
+            }
             else
+            {
+                board = pos.Flip().Board;
                 DrawPieces(pos.Flip().Board);
+            }
             if (moves.Count == 0)
                 MessageBox.Show("КОНЕЦ");
+
         }
 
         private MouseButtonEventHandler MarkCell(int i)
@@ -142,7 +151,7 @@ namespace Chess
             {
                 if (cells[i].Visibility == Visibility.Visible)
                     cells[i].Visibility = Visibility.Hidden;
-                else 
+                else
                     cells[i].Visibility = Visibility.Visible;
             };
         }
@@ -188,7 +197,7 @@ namespace Chess
                 Image im = new Image();
                 BitmapImage mipMap = new BitmapImage();
                 mipMap.BeginInit();
-                mipMap.UriSource = new Uri("pack://application:,,,/images/" + GetFigureImage(pos[i]));         
+                mipMap.UriSource = new Uri("pack://application:,,,/images/" + GetFigureImage(pos[i]));
                 mipMap.EndInit();
                 im.Source = mipMap;
                 im.Height = cellHeight;
