@@ -5,6 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Chess"
         mc:Ignorable="d"
-        Title="MainWindow" Height="519" Width="496" ResizeMode="NoResize">
-    <Canvas Name="Field" Height="480" Width="480"/>
+        Title="MainWindow" Height="519" Width="496" ResizeMode="NoResize" >
+
+    <Canvas Name="Field" Height="480" Width="480">
+        <Canvas Name="Init" Height="56" Width="190" Background="Wheat" Canvas.Left="145" Canvas.Top="212" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <Button HorizontalAlignment="Center" Canvas.Left="10" VerticalAlignment="Top" Canvas.Top="16" Height="24" Width="50" Click="ChooseColor">
+                Белый
+            </Button>
+            <Button Canvas.Left="70" Canvas.Top="16" Height="24" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Click="ChooseColor">
+                Черный
+            </Button>
+            <Button Canvas.Right="10" Canvas.Top="16" Height="24" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PVP">
+                PVP
+            </Button>
+        </Canvas>
+    </Canvas>
 </Window>

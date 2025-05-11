@@ -13,7 +13,7 @@ using ChessLib;
 
 namespace Chess
 {
-    
+
     public partial class MainWindow : Window
     {
         private double cellWidth;
@@ -28,10 +28,16 @@ namespace Chess
         private List<Move> moves;
         private List<Ellipse> possibleMoves = new List<Ellipse>();
         private bool whiteTurn = true;
-
+        private bool playerWhite = true;
+        private bool withBot = true;
         public MainWindow()
         {
             InitializeComponent();
+
+        }
+
+        private void InitBoard(string fen, bool black)
+        {
             cellWidth = Field.Width / 8;
             cellHeight = Field.Height / 8;
             cells = new Rectangle[64];
@@ -57,10 +63,16 @@ namespace Chess
                 cells[i] = clickedCell;
                 Field.Children.Add(clickedCell);
             }
-            pos = new Position(new Board("4k3/pppppppp/8/8/8/8/PPPPPPPP/4K3"));
+            pos = new Position(new Board(fen));
+            this.searcher = new Searcher();
+
             board = pos.Board;
             DrawPieces(board);
-            this.searcher = new Searcher();
+            if (black)
+            {
+                var m = searcher.Search(pos, 10000);
+                MakeMove(m);
+            }
             moves = pos.GetLegalMoves();
         }
         private static Action EmptyDelegate = delegate () { };
@@ -68,58 +80,60 @@ namespace Chess
         {
             return (sender, e) =>
             {
+                int j = i;
+                if (!whiteTurn)
+                    j = 63 - j;
+                if (withBot && whiteTurn != playerWhite)
+                    return;
                 foreach (var circle in possibleMoves)
-                {   
+                {
                     Field.Children.Remove(circle);
                 }
                 possibleMoves.Clear();
-
-                if (lastClick == i)
+                if (lastClick == j)
                 {
                     lastClick = -1;
-                } else if (char.IsLetter(board[i]) && char.IsUpper(board[i])) {
-                    lastClick = i;
-                foreach (Move m in moves)
+                }
+                else if (char.IsLetter(board[j]) && char.IsUpper(board[j]))
+                {
+                    lastClick = j;
+                    foreach (Move m in moves)
                     {
                         if (m.FromIndex == lastClick)
                         {
                             var newPos = pos.Move(m);
                             var b = newPos.Board;
-                            var f = false;
-                            if (f)
-                                continue;
                             var el = new Ellipse();
                             el.Width = cellWidth / 2;
                             el.Height = cellHeight / 2;
-                            el.Margin = new Thickness(m.ToIndex % 8 * cellWidth + cellWidth / 4, m.ToIndex / 8 * cellHeight + cellHeight / 4, 0, 0);
+                            int mIndex = whiteTurn ? m.ToIndex : 63 - m.ToIndex;
+                            el.Margin = new Thickness(mIndex % 8 * cellWidth + cellWidth / 4, mIndex / 8 * cellHeight + cellHeight / 4, 0, 0);
                             el.IsHitTestVisible = false;
                             el.Fill = new SolidColorBrush(Colors.Black);
                             possibleMoves.Add(el);
                             Field.Children.Add(el);
                         }
                     }
-                } else
-                { 
+                }
+                else
+                {
                     foreach (var move in moves)
                     {
-                        if (move.FromIndex == lastClick && move.ToIndex == i)
+                        if (move.FromIndex == lastClick && move.ToIndex == j)
                         {
-                            MessageBox.Show(pos.Value(move).ToString());
-                            pos = pos.Move(move);
-                            var m = searcher.Search(pos, 10000);
-                            var pos1 = pos.Move(m);
-                            var m1 = searcher.Search(pos1, 100);
-                            MessageBox.Show(pos1.Value(m1).ToString());
-                                
+
                             MakeMove(move);
+                            if (withBot)
+                            {
+                                MakeMove(searcher.Search(pos, 10000));
+                            }
                             lastClick = -1;
+                            return;
                         }
                     }
+                    lastClick = j;
                 }
-                if (lastClick != -1)
-                {
-                    //clickedCell.Margin = new Thickness(lastClick % 8 * cellWidth, lastClick / 8 * cellHeight, 0, 0);
-                }
+
             };
         }
 
@@ -127,13 +141,37 @@ namespace Chess
         {
             pos = pos.Move(move);
             moves = pos.GetLegalMoves();
-            whiteTurn = !whiteTurn;
-            if (!whiteTurn) 
+            board = pos.Board;
+            if (!whiteTurn)
                 DrawPieces(pos.Board);
             else
                 DrawPieces(pos.Flip().Board);
             if (moves.Count == 0)
-                MessageBox.Show("КОНЕЦ");
+            {
+                int ind = -1;
+                for (int i = 0; i < 64; i++)
+                {
+                    if (board[i] == 'K')
+                    {
+                        ind = 63 - i;
+                        break;
+                    }
+                }
+                var moves = pos.Flip().Moves();
+                foreach (var m in moves)
+                {
+                    if (m.ToIndex == ind)
+                    {
+                        MessageBox.Show(whiteTurn ? "Белые победили" : "Черные победили");
+                        return;
+                    }
+                }
+                MessageBox.Show("НИЧЬЯ");
+            }
+
+
+            whiteTurn = !whiteTurn;
+
         }
 
         private MouseButtonEventHandler MarkCell(int i)
@@ -142,7 +180,7 @@ namespace Chess
             {
                 if (cells[i].Visibility == Visibility.Visible)
                     cells[i].Visibility = Visibility.Hidden;
-                else 
+                else
                     cells[i].Visibility = Visibility.Visible;
             };
         }
@@ -188,7 +226,7 @@ namespace Chess
                 Image im = new Image();
                 BitmapImage mipMap = new BitmapImage();
                 mipMap.BeginInit();
-                mipMap.UriSource = new Uri("pack://application:,,,/images/" + GetFigureImage(pos[i]));         
+                mipMap.UriSource = new Uri("pack://application:,,,/images/" + GetFigureImage(pos[i]));
                 mipMap.EndInit();
                 im.Source = mipMap;
                 im.Height = cellHeight;
@@ -198,11 +236,35 @@ namespace Chess
                 Canvas.SetZIndex(im, 2);
                 Field.Children.Add(im);
             }
-            this.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
+            ForceUIToUpdate();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        public static void ForceUIToUpdate()
         {
+            DispatcherFrame frame = new DispatcherFrame();
+            Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Render, new DispatcherOperationCallback(delegate (object parameter)
+            {
+                frame.Continue = false;
+                return null;
+            }), null);
+            Dispatcher.PushFrame(frame);
+        }
+
+
+        private void ChooseColor(object sender, RoutedEventArgs e)
+        {
+            var a = (Button)sender;
+            bool black = a.Content.ToString() == "Черный";
+            playerWhite = !black;
+            Field.Children.Remove(Init);
+            InitBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", black);
+        }
+
+        private void PVP(object sender, RoutedEventArgs e)
+        {
+            this.withBot = false;
+            Field.Children.Remove(Init);
+            InitBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", false);
         }
     }
 }
