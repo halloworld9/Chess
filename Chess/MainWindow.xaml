@@ -16,7 +16,7 @@
                 Черный
             </Button>
             <Button Canvas.Right="10" Canvas.Top="16" Height="24" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Click="PVP">
-                PVP
+                hotseat
             </Button>
         </Canvas>
     </Canvas>
